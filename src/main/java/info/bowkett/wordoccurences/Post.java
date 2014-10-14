@@ -7,6 +7,23 @@ import java.util.Date;
  */
 public class Post {
 
+  private final String title, date,creator, description, content, author;
+
+  public Post(String title, String date, String creator, String description, String content, String author) {
+    this.author = author;
+    this.title = title;
+    this.date = date;
+    this.creator = creator;
+    this.description = description;
+    this.content = content;
+  }
+
+  public String getContent() {
+    return content;
+  }
+
+  /*
+  full implementation:
   private final String title, link, comments, creator, guid, desciption, commentRssLink, slash, author;
   private final String [] categories, symbols, stockSymbols, content;
   private final Date publishingDate;
@@ -31,4 +48,5 @@ public class Post {
     this.content = content;
     this.publishingDate = publishingDate;
   }
+  */
 }

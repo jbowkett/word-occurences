@@ -1,7 +1,6 @@
 package info.bowkett.wordoccurences;
 
 import org.junit.Test;
-import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
@@ -9,6 +8,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import java.util.*;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 
 
@@ -22,63 +22,89 @@ import static org.mockito.Mockito.when;
 @RunWith(MockitoJUnitRunner.class)
 public class WordCounterTest {
 
-  private Set<String> blackList;
-  private WordCounter counter;
-
   @Mock Post post;
 
-  @Before
-  public void before() throws Exception {
-    blackList = new HashSet<String>();
-    counter = new WordCounter(blackList);
-  }
-
-  /**
-   * Method: countOccurencesWithin(Post post)
-   */
   @Test
-  public void testCountOccurencesWhenOnlyOneWordInPostWithNoBlackList() throws Exception {
-    when(post.getContent()).thenReturn("Test");
-    final Collection<WordCounter.WordCount> wordCounts = counter.countOccurencesWithin(post);
+  public void testCaseSensitiveOnlyOneWordInPostWithNoBlackList() throws Exception {
+    final Collection<WordCounter.WordCount> wordCounts = getCaseSensitiveWordCounts("Test");
     assertEquals(1, wordCounts.size());
   }
 
   @Test
-  public void testCountOccurencesWhenOnlyOneWordMultipleTimesInPostWithNoBlackList() throws Exception {
-    when(post.getContent()).thenReturn("Test Test");
-    final Collection<WordCounter.WordCount> wordCounts = counter.countOccurencesWithin(post);
+  public void testCaseInsensitiveOnlyOneWordInPostWithNoBlackList() throws Exception {
+    final Collection<WordCounter.WordCount> wordCounts = getCaseInsensitiveWordCounts("Test");
     assertEquals(1, wordCounts.size());
-    final WordCounter.WordCount[] results = new WordCounter.WordCount[1];
-    wordCounts.toArray(results);
-    assertEquals(new WordCounter.WordCount("Test", 2), results[0]);
   }
 
   @Test
-  public void testCountOccurencesWhenOnlyOneWordMultipleTimesInPostSeparatedByPunctuationWithNoBlackList() throws Exception {
-    when(post.getContent()).thenReturn("Test;,.?Test");
-    final Collection<WordCounter.WordCount> wordCounts = counter.countOccurencesWithin(post);
+  public void testCaseSensitiveWhenOnlyOneWordMultipleTimesInPostWithNoBlackList() throws Exception {
+    final Collection<WordCounter.WordCount> wordCounts = getCaseSensitiveWordCounts("Test Test");
     assertEquals(1, wordCounts.size());
-    final WordCounter.WordCount[] results = new WordCounter.WordCount[1];
-    wordCounts.toArray(results);
-    assertEquals(new WordCounter.WordCount("Test", 2), results[0]);
+    assertTrue(wordCounts.contains(new WordCounter.WordCount("Test", 2)));
   }
 
   @Test
-  public void testCountOccurencesWhenOnlyOneWordMultipleTimesButThatWordAppearsInTheBlackList() throws Exception {
-    when(post.getContent()).thenReturn("Test Test");
-    blackList.add("Test");
-    final Collection<WordCounter.WordCount> wordCounts = counter.countOccurencesWithin(post);
+  public void testCaseInsensitiveCountOccurencesWithNoBlackList() throws Exception {
+    final Collection<WordCounter.WordCount> wordCounts = getCaseInsensitiveWordCounts("Test TeST");
+    assertEquals(1, wordCounts.size());
+    assertTrue(wordCounts.contains(new WordCounter.WordCount("Test", 2)));
+  }
+
+  @Test
+  public void testCaseInsensitiveAppliesToBlackListEntriesAlso() throws Exception {
+    final Collection<WordCounter.WordCount> wordCounts = getCaseInsensitiveWordCounts("Test TeST BLACKLISTED", "blacklisted");
+    assertEquals(1, wordCounts.size());
+    assertTrue(wordCounts.contains(new WordCounter.WordCount("Test", 2)));
+  }
+
+  @Test
+  public void testCaseSensitiveWithNoBlackList() throws Exception {
+    final Collection<WordCounter.WordCount> wordCounts = getCaseSensitiveWordCounts("Test TeSt");
+    assertEquals(2, wordCounts.size());
+    assertTrue(wordCounts.contains(new WordCounter.WordCount("Test", 1)));
+    assertTrue(wordCounts.contains(new WordCounter.WordCount("TeSt", 1)));
+  }
+
+  @Test
+  public void testSameWordSeparatedByPunctuationIsCountedAsTwoWords() throws Exception {
+    final Collection<WordCounter.WordCount> results = getCaseSensitiveWordCounts("Test;,.?Test");
+    assertEquals(1, results.size());
+    assertTrue(results.contains(new WordCounter.WordCount("Test", 2)));
+  }
+
+  @Test
+  public void testCaseSensitiveZeroOccurencesWhenOnlyABlackListedWord() throws Exception {
+    final Collection<WordCounter.WordCount> wordCounts = getCaseSensitiveWordCounts("Test Test", "Test");
     assertEquals(0, wordCounts.size());
   }
 
   @Test
-  public void testCountOccurencesWhenOnlyOneWordMultipleTimesButADifferentWordAppearsInTheBlackList() throws Exception {
-    when(post.getContent()).thenReturn("Test Test");
-    blackList.add("Missing");
-    final Collection<WordCounter.WordCount> wordCounts = counter.countOccurencesWithin(post);
+  public void testCaseSensitiveCountOccurencesWhenOnlyOneWordMultipleTimesButADifferentWordAppearsInTheBlackList() throws Exception {
+    final Collection<WordCounter.WordCount> wordCounts = getCaseSensitiveWordCounts("Test Test", "Missing");
     assertEquals(1, wordCounts.size());
-    final WordCounter.WordCount[] results = new WordCounter.WordCount[1];
-    wordCounts.toArray(results);
-    assertEquals(new WordCounter.WordCount("Test", 2), results[0]);
+    assertTrue(wordCounts.contains(new WordCounter.WordCount("Test", 2)));
+  }
+
+  private Collection<WordCounter.WordCount> getCaseSensitiveWordCounts(String postContent, String... blList) {
+    final Set<String> blackList = createBlackList(blList);
+    final WordCounter counter = WordCounter.caseSensitive(blackList);
+    return doCount(postContent, counter);
+  }
+
+  private Collection<WordCounter.WordCount> getCaseInsensitiveWordCounts(String postContent, String... blList) {
+    final Set<String> blackList = createBlackList(blList);
+    final WordCounter counter = WordCounter.caseInsensitive(blackList);
+    return doCount(postContent, counter);
+  }
+
+  private Set<String> createBlackList(String[] blList) {
+    final Set<String> blackList = new HashSet<String>();
+    Collections.addAll(blackList, blList);
+    return blackList;
+  }
+
+  private Collection<WordCounter.WordCount> doCount(String postContent, WordCounter counter) {
+    when(post.getContent()).thenReturn(postContent);
+    return counter.countOccurencesWithin(post);
   }
 }

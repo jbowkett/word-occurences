@@ -14,12 +14,12 @@ public class WordCounter {
     this.blackList = blackList;
   }
 
-  public Collection<WordCount> countOccurences(Post post) {
+  public Collection<WordCount> countOccurencesWithin(Post post) {
     final String content = post.getContent();
     final ConcurrentMap<String,WordCount> wordCounts = new ConcurrentHashMap<String,WordCount>();
 
-    //split one or more non-word characters
-    final String[] split = content.split("\\W+");
+    final String oneOrMoreNonWordCharacters = "\\W+";
+    final String[] split = content.split(oneOrMoreNonWordCharacters);
 
     for (String word : split) {
       if(isValidForCounting(word)) {

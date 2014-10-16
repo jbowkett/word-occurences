@@ -2,7 +2,6 @@ package info.bowkett.wordoccurences;
 
 import org.junit.Test;
 import org.junit.Before;
-import org.junit.After;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
@@ -35,19 +34,19 @@ public class WordCounterTest {
   }
 
   /**
-   * Method: countOccurences(Post post)
+   * Method: countOccurencesWithin(Post post)
    */
   @Test
   public void testCountOccurencesWhenOnlyOneWordInPostWithNoBlackList() throws Exception {
     when(post.getContent()).thenReturn("Test");
-    final Collection<WordCounter.WordCount> wordCounts = counter.countOccurences(post);
+    final Collection<WordCounter.WordCount> wordCounts = counter.countOccurencesWithin(post);
     assertEquals(1, wordCounts.size());
   }
 
   @Test
   public void testCountOccurencesWhenOnlyOneWordMultipleTimesInPostWithNoBlackList() throws Exception {
     when(post.getContent()).thenReturn("Test Test");
-    final Collection<WordCounter.WordCount> wordCounts = counter.countOccurences(post);
+    final Collection<WordCounter.WordCount> wordCounts = counter.countOccurencesWithin(post);
     assertEquals(1, wordCounts.size());
     final WordCounter.WordCount[] results = new WordCounter.WordCount[1];
     wordCounts.toArray(results);
@@ -57,7 +56,7 @@ public class WordCounterTest {
   @Test
   public void testCountOccurencesWhenOnlyOneWordMultipleTimesInPostSeparatedByPunctuationWithNoBlackList() throws Exception {
     when(post.getContent()).thenReturn("Test;,.?Test");
-    final Collection<WordCounter.WordCount> wordCounts = counter.countOccurences(post);
+    final Collection<WordCounter.WordCount> wordCounts = counter.countOccurencesWithin(post);
     assertEquals(1, wordCounts.size());
     final WordCounter.WordCount[] results = new WordCounter.WordCount[1];
     wordCounts.toArray(results);
@@ -68,7 +67,7 @@ public class WordCounterTest {
   public void testCountOccurencesWhenOnlyOneWordMultipleTimesButThatWordAppearsInTheBlackList() throws Exception {
     when(post.getContent()).thenReturn("Test Test");
     blackList.add("Test");
-    final Collection<WordCounter.WordCount> wordCounts = counter.countOccurences(post);
+    final Collection<WordCounter.WordCount> wordCounts = counter.countOccurencesWithin(post);
     assertEquals(0, wordCounts.size());
   }
 
@@ -76,7 +75,7 @@ public class WordCounterTest {
   public void testCountOccurencesWhenOnlyOneWordMultipleTimesButADifferentWordAppearsInTheBlackList() throws Exception {
     when(post.getContent()).thenReturn("Test Test");
     blackList.add("Missing");
-    final Collection<WordCounter.WordCount> wordCounts = counter.countOccurences(post);
+    final Collection<WordCounter.WordCount> wordCounts = counter.countOccurencesWithin(post);
     assertEquals(1, wordCounts.size());
     final WordCounter.WordCount[] results = new WordCounter.WordCount[1];
     wordCounts.toArray(results);

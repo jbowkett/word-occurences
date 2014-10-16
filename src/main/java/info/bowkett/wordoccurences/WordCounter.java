@@ -1,8 +1,8 @@
 package info.bowkett.wordoccurences;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * Created by jbowkett on 14/10/2014.
@@ -14,33 +14,56 @@ public class WordCounter {
     this.blackList = blackList;
   }
 
-  public List<WordCount> countOccurences(Post post) {
+  public Collection<WordCount> countOccurences(Post post) {
     final String content = post.getContent();
-    final List<WordCount> wordCounts = new ArrayList<WordCount>();
+    final ConcurrentMap<String,WordCount> wordCounts = new ConcurrentHashMap<String,WordCount>();
 
-
-    //split on whitespace
-    final String[] split = content.split("\\w");
+    //split one or more non-word characters
+    final String[] split = content.split("\\W+");
 
     for (String word : split) {
-      if(blackList.contains(word)){
-        //ignore it
-      }
-      else{
-
+      if(isValidForCounting(word)) {
+        wordCounts.putIfAbsent(word, new WordCount(word, 0));
+        wordCounts.get(word).increment();
       }
     }
-    return wordCounts;
+    return wordCounts.values();
   }
 
+  private boolean isValidForCounting(String word) {
+    return !blackList.contains(word);
+  }
 
   static class WordCount{
     final String word;
-    final int count;
+    int count;
 
     WordCount(String word, int count) {
       this.word = word;
       this.count = count;
+    }
+
+    public void increment() {
+      count++;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) return true;
+      if (o == null || getClass() != o.getClass()) return false;
+
+      WordCount wordCount = (WordCount) o;
+
+      return count == wordCount.count &&
+             word.equals(wordCount.word);
+
+    }
+
+    @Override
+    public int hashCode() {
+      int result = word.hashCode();
+      result = 31 * result + count;
+      return result;
     }
   }
 }

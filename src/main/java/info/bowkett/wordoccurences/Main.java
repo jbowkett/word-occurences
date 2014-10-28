@@ -7,10 +7,7 @@ import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 import java.io.File;
 import java.io.IOException;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Created by jbowkett on 14/10/2014.
@@ -37,9 +34,21 @@ public class Main {
 
         final Iterator<Post> iterator = posts.iterator();
         while(iterator.hasNext()){
-          final Collection<WordCounter.WordCount> wordCounts = counter.countOccurencesWithin(iterator.next());
+          final Post post = iterator.next();
+          final Collection<WordCounter.WordCount> wordCounts = counter.countOccurencesWithin(post);
+          final List<WordCounter.WordCount> orderedCounts = new ArrayList<WordCounter.WordCount>();
+          orderedCounts.addAll(wordCounts);
           //sort wordcounts
-          //print first
+          Collections.sort(orderedCounts, new Comparator<WordCounter.WordCount>(){
+            @Override
+            public int compare(WordCounter.WordCount wordCount, WordCounter.WordCount wordCount2) {
+              return wordCount2.getCount() - wordCount.getCount();
+            }
+          });
+          final WordCounter.WordCount highestWordCount = orderedCounts.get(0);
+          final String word = highestWordCount.getWord();
+          final int count = highestWordCount.getCount();
+          System.out.println("For post with title :[" + post.getTitle() + "] most common word is:["+word+"], occurring :["+count+"] times.");
         }
 
       } //multi-catch would be much nicer here

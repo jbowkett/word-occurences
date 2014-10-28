@@ -22,6 +22,10 @@ public class Post {
     return content;
   }
 
+  public String getTitle() {
+    return title;
+  }
+
   /*
   full implementation:
   private final String title, link, comments, creator, guid, desciption, commentRssLink, slash, author;
